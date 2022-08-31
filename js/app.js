@@ -1,17 +1,17 @@
-const loadPhones = async(search) =>{
+const loadPhones = async(search, dataLimit) =>{
     const url = `https://openapi.programming-hero.com/api/phones?search=${search}`
     const res = await fetch(url)
    const data = await res.json()
-   displayPhone(data.data)
+   displayPhone(data.data, dataLimit)
 }
 // loadPhones()
 
-const displayPhone = phones =>{
+const displayPhone = (phones, dataLimit) =>{
     const placeMent = document.getElementById('main')
     placeMent.innerHTML = '';
     // display 10 phones
     const showAll = document.getElementById('show-all')
-   if(phones.length > 10){
+   if(dataLimit && phones.length > 10){
     phones = phones.slice(0, 10)
     
     showAll.classList.remove('d-none')
@@ -35,11 +35,12 @@ const displayPhone = phones =>{
         const div = document.createElement('div')
         div.classList.add('col')
         div.innerHTML = ` 
-        <div class="card p-4">
+        <div class="card p-4" style="width: 18rem;">
       <img src="${phone.image}" class="card-img-top" alt="...">
       <div class="card-body">
         <h5 class="card-title">${phone.brand}</h5>
         <p class="card-text">${phone.phone_name}</p>
+        <button onclick="showDetails('${phone.slug}')" href="#" class="btn btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal">Details</button>
       </div>
     </div>
         `
@@ -48,14 +49,17 @@ const displayPhone = phones =>{
 //stop spinner
 loadingSpinner(false)
 }
-
+//search btn
 document.getElementById('btn').addEventListener('click', function(){
 //start spinner
-    loadingSpinner(true)
+showAll(10)
+})
 
-    const inputField = document.getElementById('input-field');
-    const inputText = inputField.value ;
-    loadPhones(inputText)
+//enter to search
+document.getElementById('input-field').addEventListener('keypress', function(event){
+    if(event.key === 'Enter'){
+        showAll(10)
+    }
 })
 
 const loadingSpinner = isLoading =>{
@@ -67,7 +71,37 @@ const loadingSpinner = isLoading =>{
         loader.classList.add('d-none')
     }
 }
-
-document.getElementById('show-all').addEventListener('click', function(){
-    
+//show all function 
+const showAll = (dataLimit) =>{
+    loadingSpinner(true)
+const inputField = document.getElementById('input-field');
+const inputText = inputField.value ;
+loadPhones(inputText, dataLimit)
+}
+//show all btn
+document.getElementById('btn-show-all').addEventListener('click', function(){
+    showAll()
 })
+
+//btn show details
+const showDetails = async id =>{
+    const url = `https://openapi.programming-hero.com/api/phone/${id}`
+    const res = await fetch(url)
+    const data = await res.json()
+    showDetailsDisplay(data.data)
+}
+
+//btn show display
+const showDetailsDisplay = phone =>{
+    console.log(phone)
+    const phoneTitle = document.getElementById('exampleModalLabels')
+    phoneTitle.innerText = phone.name;
+    const rlxDate = document.getElementById('modal-body')
+    rlxDate.innerHTML = `
+    <p>${phone.releaseDate ? phone.releaseDate : 'No date found'}</p>
+    <p>${phone.mainFeatures.memory}</p>
+    `
+    const mainFeature = document.getElementById('storage')
+    mainFeature.innerText = phone.mainFeatures.storage
+}
+loadPhones('apple')
